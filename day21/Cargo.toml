@@ -10,3 +10,4 @@ name="part1"
 name="part2"
 
 [dependencies]
+rand = "0.8.5"

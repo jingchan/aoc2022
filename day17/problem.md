@@ -369,3 +369,9 @@ feel confident enough to proceed through the cave.
 In the example above, the tower would be 1514285714288 units tall!
 
 How tall will the tower be after 1000000000000 rocks have stopped?
+188896283595
+1514285714288
+
+1514288759142
+1514289293965
+1514290363611

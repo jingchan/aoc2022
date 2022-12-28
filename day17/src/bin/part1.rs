@@ -1,12 +1,9 @@
 use std::io;
 use utils::*;
 
-// [day17/src/bin/part1.rs:140] cycle = 353185
-// [day17/src/bin/part1.rs:140] tot / cycle = 2831377
-// [day17/src/bin/part1.rs:140] tot % cycle = 114255
-// const NUM_ROUNDS: u32 = 353185 * 2 + 114255;
-const NUM_ROUNDS: u32 = 114255;
-// const NUM_ROUNDS: u32 = 2000022;
+type Grid = utils::Grid<u32, u32>;
+type Point = utils::Point<i32>;
+const NUM_ROUNDS: u32 = 2000022;
 // #### 0
 
 // .#.  1
@@ -26,14 +23,14 @@ const NUM_ROUNDS: u32 = 114255;
 // ##
 
 /// represnts bottom right
-fn check_point(grid: &Grid<u32>, p: Point, sh: u32) -> bool {
+fn check_point(grid: &Grid, p: Point, sh: u32) -> bool {
     let shape = get_shape(sh);
 
     for s in shape {
-        if !grid.check_point_in_bounds(p + s) {
+        if !grid.check_in_bounds((p.x + s.x) as u32, (p.y + s.y) as u32) {
             return false;
         }
-        if grid.get_at_point(p + s) != 0 {
+        if grid.get((p.x + s.x) as u32, (p.y + s.y) as u32) != 0 {
             return false;
         }
     }
@@ -80,20 +77,16 @@ fn get_shape(sh: u32) -> Vec<Point> {
 
 fn main() -> io::Result<()> {
     let mut heights = Vec::new();
-    let mut grid = Grid::new_with_value(7, 200000000, 0);
+    let mut grid = Grid::new_with_value(7, 200000, 0);
     let mut height = 0;
     let mut lines = io::stdin().lines();
     let lines = lines.next().unwrap().unwrap();
     let chars = lines.chars().collect::<Vec<char>>();
     let mut windi = 0;
-    let mut lastheight = 0;
 
     println!("Len:{:?}", chars.len());
     // Len:40
     // Len:10091
-    let tot = 1000000000000u128;
-    let cycle = 7 * 10091 * 5;
-    dbg!(tot, cycle, tot / cycle, tot % cycle);
 
     for i in 0..NUM_ROUNDS {
         let mut pos = Point::new(2, height + 4);
@@ -129,45 +122,20 @@ fn main() -> io::Result<()> {
         }
 
         for s in get_shape(i) {
-            grid.set_at_point(pos + s, 1);
+            grid.set((pos.x + s.x) as u32, (pos.y + s.y) as u32, 1);
             height = height.max((pos + s).y + 1);
         }
 
         // print_grid(&grid, Point::new(0, 0), Point::new(7, 40));
         // println!("NewHight: {}", height);
-
-        //Len:10091
-        //          1,          1
-        //     534831,     534830
-        //    1069654,     534823
-        //    1604477,     534823
-        //    2139300,     534823
-        //    2674123,     534823
-
-        // [day17/src/bin/part1.rs:140] tot = 1000000000000
-        // [day17/src/bin/part1.rs:140] cycle = 353185
-        // [day17/src/bin/part1.rs:140] tot / cycle = 2831377
-        // [day17/src/bin/part1.rs:140] tot % cycle = 114255
-        // 1000000000000
-        // 0 to 2*(7 * 10091 * 5)
-
-        // height per cycle: 534823
-        // Cycles skipped: 353185
-        if (i % (7 * 10091 * 5) == 0) {
-            println!("{:10?}, {:10?}", height, height - lastheight);
-            lastheight = height;
-        }
-        heights.push(height);
     }
 
     println!("{}", height);
-    println!(
-        "{}",
-        height as u128 + (1069654u128 + 534823u128 * 2831375u128)
-    );
+    heights.push(height);
+
     Ok(())
 }
-fn print_grid(grid: &Grid<u32>, p1: Point, p2: Point) {
+fn print_grid(grid: &Grid, p1: Point, p2: Point) {
     for y in p1.y..p2.y {
         for x in p1.x..p2.x {
             if grid.get(x as u32, y as u32) == 1 {

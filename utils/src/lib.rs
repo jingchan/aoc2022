@@ -1,104 +1,107 @@
+use std::{
+    fmt::Debug,
+    ops::{Add, Div, Mul, Sub},
+};
+
 #[derive(Clone)]
-pub struct Grid<T> {
+pub struct Grid<T = u32, U = u32> {
     inner: Vec<T>,
-    pub width: u32,
-    pub height: u32,
+    pub width: U,
+    pub height: U,
 }
 
-impl<T> Grid<T>
+impl<T, U> Grid<T, U>
 where
     T: Default + Clone + Copy + std::cmp::PartialEq,
 {
-    pub fn new(width: u32, height: u32) -> Self {
+    pub fn new(width: U, height: U) -> Self
+    where
+        U: Mul<Output = U> + Copy,
+        usize: TryFrom<U>,
+        <usize as TryFrom<U>>::Error: Debug,
+    {
         Self {
-            inner: vec![T::default(); (width * height) as usize],
+            inner: vec![T::default(); usize::try_from(width * height).unwrap()],
             width,
             height,
         }
     }
-    pub fn new_with_value(width: u32, height: u32, value: T) -> Self {
+    pub fn new_with_value(width: U, height: U, value: T) -> Self
+    where
+        U: Mul<Output = U> + Copy,
+        usize: TryFrom<U>,
+        <usize as TryFrom<U>>::Error: Debug,
+    {
         Self {
-            inner: vec![value; (width * height) as usize],
+            inner: vec![value; usize::try_from(width * height).unwrap()],
             width,
             height,
         }
     }
 
-    pub fn get(&self, x: u32, y: u32) -> T {
+    pub fn get(&self, x: U, y: U) -> T
+    where
+        U: Mul<Output = U> + TryInto<usize> + Add<Output = U> + Copy,
+        usize: TryFrom<U>,
+        <usize as TryFrom<U>>::Error: Debug,
+    {
         self.inner[usize::try_from(y * self.width + x).unwrap()]
     }
 
-    pub fn get_at_point(&self, point: Point) -> T {
-        self.get(
-            u32::try_from(point.x).unwrap(),
-            u32::try_from(point.y).unwrap(),
-        )
+    pub fn get_at_point(&self, point: Point<U>) -> T
+    where
+        U: Mul<Output = U> + Add<Output = U> + Copy,
+        usize: TryFrom<U>,
+        <usize as TryFrom<U>>::Error: Debug,
+    {
+        self.get(point.x, point.y)
     }
 
-    pub fn set(&mut self, x: u32, y: u32, val: T) {
+    pub fn set(&mut self, x: U, y: U, val: T)
+    where
+        U: Mul<Output = U> + Add<Output = U> + Copy,
+        usize: TryFrom<U>,
+        <usize as TryFrom<U>>::Error: Debug,
+    {
         self.inner[usize::try_from(y * self.width + x).unwrap()] = val;
     }
 
-    pub fn set_at_point(&mut self, point: Point, val: T) {
+    pub fn set_at_point(&mut self, point: Point<U>, val: T)
+    where
+        U: Mul<Output = U> + Add<Output = U> + Copy,
+        usize: TryFrom<U>,
+        <usize as TryFrom<U>>::Error: Debug,
+    {
         self.set(
-            u32::try_from(point.x).unwrap(),
-            u32::try_from(point.y).unwrap(),
+            U::try_from(point.x).unwrap(),
+            U::try_from(point.y).unwrap(),
             val,
         )
     }
 
-    pub fn check_in_bounds(&self, x: i64, y: i64) -> bool {
-        x >= 0
-            && y >= 0
-            && x < i64::try_from(self.width).unwrap()
-            && y < i64::try_from(self.height).unwrap()
+    pub fn check_in_bounds(&self, x: U, y: U) -> bool
+    where
+        U: PartialOrd,
+        usize: TryFrom<U>,
+        <usize as TryFrom<U>>::Error: Debug,
+    {
+        x < self.width
+            && y < self.height
+            && usize::try_from(x).is_ok()
+            && usize::try_from(y).is_ok()
     }
 
-    pub fn check_point_in_bounds(&self, p: Point) -> bool {
-        self.check_in_bounds(
-            i64::try_from(p.x).unwrap(),
-            i64::try_from(p.y).unwrap(),
-        )
-    }
-
-    pub fn draw_from(&mut self, from: Point, to: Point, val: T) {
-        let diff = to - from;
-
-        for i in 0..=i32::abs(diff.x) {
-            let point = from + Point::new(i * i32::signum(diff.x), 0);
-            self.set_at_point(point, val)
-        }
-        for i in 0..=i32::abs(diff.y) {
-            let point = from + Point::new(0, i * i32::signum(diff.y));
-            self.set_at_point(point, val)
-        }
-    }
-
-    /// Returns true if sand stabilizes, otherwise false.
-    pub fn spawn_sand(&mut self, origin: Point, val: T, floor: i32) -> bool {
-        // if origin.y < 30 {
-        //     dbg!(origin);
-        // }
-
-        let down = Point::new(0, 1);
-        let left = Point::new(-1, 1);
-        let right = Point::new(1, 1);
-
-        for dir in [origin + down, origin + left, origin + right] {
-            if self.get_at_point(dir) == T::default() && dir.y < floor {
-                return self.spawn_sand(dir, val, floor);
-            }
-        }
-
-        if origin.x == 500 && origin.y == 0 {
-            return false;
-        }
-        self.set_at_point(origin, val);
-        true
+    pub fn check_point_in_bounds(&self, p: Point<U>) -> bool
+    where
+        U: PartialOrd + Copy + Clone,
+        usize: TryFrom<U>,
+        <usize as TryFrom<U>>::Error: Debug,
+    {
+        self.check_in_bounds(p.x, p.y)
     }
 }
 
-impl<T> std::fmt::Debug for Grid<T>
+impl<T> std::fmt::Debug for Grid<T, u32>
 where
     T: std::fmt::Debug,
 {
@@ -121,29 +124,34 @@ where
     }
 }
 
-#[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
-pub struct Point {
-    pub x: i32,
-    pub y: i32,
+#[derive(Hash, PartialEq, PartialOrd, Ord, Eq, Clone, Copy, Debug)]
+pub struct Point<T>
+where
+    T: Copy + Clone,
+{
+    pub x: T,
+    pub y: T,
 }
 
-impl Point {
-    pub fn new(x: i32, y: i32) -> Self {
+// pub struct Point<T = u32> {
+//     pub x: T,
+//     pub y: T,
+// }
+
+impl<T> Point<T>
+where
+    T: Copy + Clone,
+{
+    pub fn new(x: T, y: T) -> Self {
         Self { x, y }
     }
-
-    pub fn dirs() -> [Self; 4] {
-        [
-            Point::new(-1, 0),
-            Point::new(1, 0),
-            Point::new(0, 1),
-            Point::new(0, -1),
-        ]
-    }
 }
 
-impl std::ops::Add for Point {
-    type Output = Point;
+impl<T> std::ops::Add for Point<T>
+where
+    T: Add<Output = T> + std::marker::Copy,
+{
+    type Output = Point<T>;
     fn add(self, rhs: Self) -> Self::Output {
         Self::Output {
             x: self.x + rhs.x,
@@ -152,8 +160,11 @@ impl std::ops::Add for Point {
     }
 }
 
-impl std::ops::Sub for Point {
-    type Output = Point;
+impl<T> std::ops::Sub for Point<T>
+where
+    T: Sub<Output = T> + std::marker::Copy,
+{
+    type Output = Point<T>;
     fn sub(self, rhs: Self) -> Self::Output {
         Self::Output {
             x: self.x - rhs.x,

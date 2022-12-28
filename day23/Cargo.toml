@@ -10,3 +10,4 @@ name="part1"
 name="part2"
 
 [dependencies]
+utils = { path="../utils" }
