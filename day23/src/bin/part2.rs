@@ -260,17 +260,17 @@ fn main() -> io::Result<()> {
         [Point::new(-1, 0), Point::new(-1, 1), Point::new(-1, -1)],
         [Point::new(1, 0), Point::new(1, -1), Point::new(1, 1)],
     ];
-    let mut r = 0;
+    // let mut r = 0;
     // loop {
-    for _ in 0..10 {
-        println!("moving {} dormantj {}", elves.len(), dormant.len());
-        print_summ(&elves, &mut dormant);
-        println!("dormant {:?}", dormant.all_as_v());
-        println!(
-            "dormant {:?}",
-            elves.iter().cloned().collect::<Vec<Point>>()
-        );
-        r += 1;
+    for r in 0..100000 {
+        // println!("moving {} dormantj {}", elves.len(), dormant.len());
+        // print_summ(&elves, &mut dormant);
+        // println!("dormant {:?}", dormant.all_as_v());
+        // println!(
+        //     "dormant {:?}",
+        //     elves.iter().cloned().collect::<Vec<Point>>()
+        // );
+        // r += 1;
         if r % 10 == 0 {
             println!("Round: {}", r);
         }
@@ -293,7 +293,7 @@ fn main() -> io::Result<()> {
             }
 
             if !found {
-                println!("Going dormant at {:?}", e);
+                // println!("Going dormant at {:?}", e);
                 dormant.set_point(*e);
                 dormant_elves.insert(*e);
                 continue;
@@ -327,6 +327,7 @@ fn main() -> io::Result<()> {
                     let woken = wake_dormant(&mut dormant, *p);
                     for w in woken {
                         newpos.insert(w);
+                        dormant_elves.remove(&w);
                     }
 
                     continue;
@@ -339,7 +340,7 @@ fn main() -> io::Result<()> {
         }
 
         if newpos.is_empty() {
-            println!("no moving elves on {}", r);
+            println!("no moving elves on Round: {}", r + 1);
             break;
         }
 
@@ -361,7 +362,7 @@ fn wake_dormant(dormant: &mut QuadTree, p: Point) -> Vec<Point> {
     for i in -1..=1 {
         for j in -1..=1 {
             if let Some(e) = dormant.take_point(Point::new(p.x + i, p.y + j)) {
-                println!("Waking dormant at {:?}", e);
+                // println!("Waking dormant at {:?}", e);
                 v.push(e);
                 v.append(&mut wake_dormant(dormant, e));
             }
@@ -412,5 +413,11 @@ fn print_summ(elves: &BTreeSet<Point>, dormant: &mut QuadTree) {
     }
     dbg!(minx, maxx, miny, maxy, count);
 
-    println!("{}", (1 + maxx - minx) * (1 + maxy - miny) - count);
+    println!(
+        "Score: {} from {}*{}-{}",
+        (1 + maxx - minx) * (1 + maxy - miny) - count,
+        (1 + maxx - minx),
+        (1 + maxy - miny),
+        count
+    );
 }
