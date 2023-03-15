@@ -1,12 +1,7 @@
 use std::io;
 
 fn main() -> io::Result<()> {
-    let (_, fives) = (0..24).fold((1, Vec::new()), |(mut t, mut acc), i| {
-        acc.push(t);
-        t *= 5;
-
-        (t, acc)
-    });
+    let fives: Vec<_> = (0..25).map(|d| 5_i64.pow(d as _)).collect();
 
     let mut total_sum: i64 = 0;
     for line in io::stdin().lines() {
@@ -27,7 +22,7 @@ fn main() -> io::Result<()> {
             sum += d * fives[length - i - 1]
         }
 
-        println!("Sum: {}", sum);
+        // println!("Sum: {}", sum);
         total_sum += sum;
     }
     println!("Total sum: {}", total_sum);
